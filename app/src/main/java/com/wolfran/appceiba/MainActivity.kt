@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.wolfran.appceiba.helpers.DBHelper
 import com.wolfran.appceiba.models.UserModel
 import com.wolfran.appceiba.utils.APIService
+import com.wolfran.appceiba.utils.CargandoDialog
 import com.wolfran.appceiba.utils.MyAdapter
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     val db = DBHelper(this, null)
     lateinit var recyclerview : RecyclerView
+    lateinit var dialog : CargandoDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +27,9 @@ class MainActivity : AppCompatActivity() {
         // getting the recyclerview by its id
         recyclerview = findViewById<RecyclerView>(R.id.rvUsers)
         recyclerview.layoutManager = LinearLayoutManager(this)
+        dialog = CargandoDialog(this)
 
+        //consultar usuarios en la BD
         val users = db.getUsers()
 
         //validar si ya estan guardados localmente los usuarios
@@ -35,6 +39,9 @@ class MainActivity : AppCompatActivity() {
             // asignar el adapter al recyclerview
             recyclerview.adapter = adapter
         }else{
+            //abrir dialogo cargando
+            dialog.startAlertDialog()
+            //consultar servicio user
             obtenerUsers()
         }
     }
@@ -52,10 +59,15 @@ class MainActivity : AppCompatActivity() {
             val users = call.body() as List<UserModel>
             uiThread {
                 print(users.toString())
+                //guardar usuarios en la BD
+                for (user in users){
+                    db.insertUser(user)
+                }
                 // pasar arrayList al adapter
                 val adapter = MyAdapter(users)
                 // asignar el adapter al recyclerview
                 recyclerview.adapter = adapter
+                dialog.stopAlertDialog()
             }
         }
     }
