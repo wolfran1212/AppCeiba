@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">AppCeiba</string>
+    <string name="app_name">Prueba de Ingreso</string>
+    <string name="name">Nombre usuario</string>
+    <string name="phone">Telefono</string>
+    <string name="email">Correo electronico</string>
+    <string name="ver_publicaciones">VER PUBLICACIONES</string>
+
 </resources>
