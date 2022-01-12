@@ -6,35 +6,57 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.wolfran.appceiba.helpers.DBHelper
 import com.wolfran.appceiba.models.UserModel
+import com.wolfran.appceiba.utils.APIService
 import com.wolfran.appceiba.utils.MyAdapter
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
+
+    val db = DBHelper(this, null)
+    lateinit var recyclerview : RecyclerView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // getting the recyclerview by its id
-        val recyclerview = findViewById<RecyclerView>(R.id.rvUsers)
+        recyclerview = findViewById<RecyclerView>(R.id.rvUsers)
         recyclerview.layoutManager = LinearLayoutManager(this)
 
-        //instanciar DBHelper BD
-        val db = DBHelper(this, null)
-
-        // se crea usuarios de ejemplo
-        //insertando user a la BD
-        val user1 = UserModel(id = 1, name = "Wolfran Pinzon", phone = "3115669761", email = "wolfran2008@gmail.com", website = "", username = "", company = null, address = null)
-        db.insertUser(user1)
-        val user2 = UserModel(id = 2, name = "Pedro Perez", phone = "3114569761", email = "pedro@gmail.com", website = "", username = "", company = null, address = null)
-        db.insertUser(user2)
-
-        // ArrayList de UserModel
         val users = db.getUsers()
 
-        // pasar arrayList al adapter
-        val adapter = MyAdapter(users)
+        //validar si ya estan guardados localmente los usuarios
+        if(users.count() > 0){
+            // pasar arrayList al adapter
+            val adapter = MyAdapter(users)
+            // asignar el adapter al recyclerview
+            recyclerview.adapter = adapter
+        }else{
+            obtenerUsers()
+        }
+    }
 
-        // asignar el adapter al recyclerview
-        recyclerview.adapter = adapter
+    private fun getRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://jsonplaceholder.typicode.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
+    private fun obtenerUsers() {
+        doAsync {
+            val call = getRetrofit().create(APIService::class.java).getUsers("users").execute()
+            val users = call.body() as List<UserModel>
+            uiThread {
+                print(users.toString())
+                // pasar arrayList al adapter
+                val adapter = MyAdapter(users)
+                // asignar el adapter al recyclerview
+                recyclerview.adapter = adapter
+            }
+        }
     }
 }

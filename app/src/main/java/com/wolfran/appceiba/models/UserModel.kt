@@ -30,3 +30,4 @@ data class Company (
     val bs: String
 )
 
+//@SerializedName("status")
