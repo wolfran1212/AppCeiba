@@ -3,6 +3,10 @@ package com.wolfran.appceiba
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
+import android.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.wolfran.appceiba.helpers.DBHelper
@@ -14,16 +18,22 @@ import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Locale.filter
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TextWatcher {
 
     val db = DBHelper(this, null)
     lateinit var recyclerview : RecyclerView
+    lateinit var buscarUser : EditText
     lateinit var dialog : CargandoDialog
+    lateinit var myAdapter: MyAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        buscarUser = findViewById<EditText>(R.id.svUserSearch)
+        buscarUser.addTextChangedListener(this)
 
         // getting the recyclerview by its id
         recyclerview = findViewById<RecyclerView>(R.id.rvUsers)
@@ -39,6 +49,7 @@ class MainActivity : AppCompatActivity() {
             val adapter = MyAdapter(users,this)
             // asignar el adapter al recyclerview
             recyclerview.adapter = adapter
+            myAdapter = adapter
         }else{
             //abrir dialogo cargando
             dialog.startAlertDialog()
@@ -68,8 +79,22 @@ class MainActivity : AppCompatActivity() {
                 val adapter = MyAdapter(users,actividad)
                 // asignar el adapter al recyclerview
                 recyclerview.adapter = adapter
+                myAdapter = adapter
                 dialog.stopAlertDialog()
             }
         }
     }
+
+    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+    }
+
+    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+    }
+
+    override fun afterTextChanged(p0: Editable?) {
+        myAdapter.filter.filter(p0)
+    }
+
 }
